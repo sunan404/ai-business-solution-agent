@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+*.log
+.sites-runtime/
+.streamlit/secrets.toml
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+reports/
+node_modules/
+*.inspect.ndjson

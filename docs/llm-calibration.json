@@ -1,0 +1,296 @@
+{
+  "time_utc": "2026-09-30T06:22:24.508600+00:00",
+  "provider": "deepseek",
+  "max_output_tokens": 6000,
+  "timeout_seconds": 60.0,
+  "max_retries": 0,
+  "sample_count": 1,
+  "passed": 1,
+  "cases": [
+    {
+      "case": "brand",
+      "input_chars": 2016,
+      "passed": true,
+      "json_and_schema_valid": true,
+      "evidence_valid": true,
+      "pain_count": 5,
+      "usage": {
+        "input_tokens": 2257,
+        "output_tokens": 1457,
+        "estimated_usd": 0.0024255
+      },
+      "model": "deepseek-flash",
+      "duration_seconds": 9.597,
+      "events": [
+        {
+          "event": "llm_started",
+          "time": "2026-09-30T06:22:15.607986+00:00",
+          "request_id": "ed265c01fdcb4e09a6c31dbc8f9a98d9",
+          "input_chars": 2016,
+          "attempts_reserved": 1
+        },
+        {
+          "event": "llm_usage",
+          "time": "2026-09-30T06:22:24.500166+00:00",
+          "request_id": "ed265c01fdcb4e09a6c31dbc8f9a98d9",
+          "input_tokens": 2257,
+          "output_tokens": 1457,
+          "estimated_usd": 0.0024255
+        },
+        {
+          "event": "llm_completed",
+          "time": "2026-09-30T06:22:24.508413+00:00",
+          "request_id": "ed265c01fdcb4e09a6c31dbc8f9a98d9",
+          "duration_ms": 8912
+        }
+      ]
+    }
+  ],
+  "scope": "Two fictional integration samples, not accuracy or reliability certification.",
+  "previous_runs": [
+    {
+      "time_utc": "2026-09-30T06:10:25.575743+00:00",
+      "provider": "deepseek",
+      "max_output_tokens": 6000,
+      "timeout_seconds": 60.0,
+      "max_retries": 0,
+      "sample_count": 2,
+      "passed": 0,
+      "cases": [
+        {
+          "case": "game",
+          "input_chars": 1496,
+          "passed": false,
+          "error_type": "LLMOutputError",
+          "duration_seconds": 13.259,
+          "events": [
+            {
+              "event": "llm_started",
+              "time": "2026-09-30T06:10:02.086160+00:00",
+              "request_id": "c6c5c899787e44ada9845f5e16a718e6",
+              "input_chars": 1496,
+              "attempts_reserved": 1
+            },
+            {
+              "event": "llm_usage",
+              "time": "2026-09-30T06:10:14.536838+00:00",
+              "request_id": "c6c5c899787e44ada9845f5e16a718e6",
+              "input_tokens": 1769,
+              "output_tokens": 2577,
+              "estimated_usd": 0.0036230999999999998
+            },
+            {
+              "event": "llm_failed",
+              "time": "2026-09-30T06:10:14.537457+00:00",
+              "request_id": "c6c5c899787e44ada9845f5e16a718e6",
+              "category": "output_validation",
+              "duration_ms": 12471
+            }
+          ]
+        },
+        {
+          "case": "brand",
+          "input_chars": 2016,
+          "passed": false,
+          "error_type": "LLMOutputError",
+          "duration_seconds": 11.038,
+          "events": [
+            {
+              "event": "llm_started",
+              "time": "2026-09-30T06:10:14.543429+00:00",
+              "request_id": "62c88946b2054bf4babb2d3491454b16",
+              "input_chars": 2016,
+              "attempts_reserved": 1
+            },
+            {
+              "event": "llm_usage",
+              "time": "2026-09-30T06:10:25.574708+00:00",
+              "request_id": "62c88946b2054bf4babb2d3491454b16",
+              "input_tokens": 2068,
+              "output_tokens": 2103,
+              "estimated_usd": 0.003144
+            },
+            {
+              "event": "llm_failed",
+              "time": "2026-09-30T06:10:25.575454+00:00",
+              "request_id": "62c88946b2054bf4babb2d3491454b16",
+              "category": "output_validation",
+              "duration_ms": 11037
+            }
+          ]
+        }
+      ],
+      "scope": "Two fictional integration samples, not accuracy or reliability certification."
+    },
+    {
+      "time_utc": "2026-09-30T06:14:40.175508+00:00",
+      "provider": "deepseek",
+      "max_output_tokens": 6000,
+      "timeout_seconds": 60.0,
+      "max_retries": 0,
+      "sample_count": 1,
+      "passed": 0,
+      "cases": [
+        {
+          "case": "game",
+          "input_chars": 1496,
+          "passed": false,
+          "error_type": "LLMOutputError",
+          "error_message": "模型输出的痛点字段不完整。",
+          "duration_seconds": 14.529,
+          "events": [
+            {
+              "event": "llm_started",
+              "time": "2026-09-30T06:14:26.638521+00:00",
+              "request_id": "e4f3dbb0958741b0ab1c87fcfb7f12e4",
+              "input_chars": 1496,
+              "attempts_reserved": 1
+            },
+            {
+              "event": "llm_usage",
+              "time": "2026-09-30T06:14:40.165922+00:00",
+              "request_id": "e4f3dbb0958741b0ab1c87fcfb7f12e4",
+              "input_tokens": 1769,
+              "output_tokens": 2724,
+              "estimated_usd": 0.0037994999999999995
+            },
+            {
+              "event": "llm_failed",
+              "time": "2026-09-30T06:14:40.175392+00:00",
+              "request_id": "e4f3dbb0958741b0ab1c87fcfb7f12e4",
+              "category": "output_validation",
+              "duration_ms": 13561
+            }
+          ]
+        }
+      ],
+      "scope": "Two fictional integration samples, not accuracy or reliability certification."
+    },
+    {
+      "time_utc": "2026-09-30T06:19:48.459777+00:00",
+      "provider": "deepseek",
+      "max_output_tokens": 6000,
+      "timeout_seconds": 60.0,
+      "max_retries": 0,
+      "sample_count": 2,
+      "passed": 0,
+      "cases": [
+        {
+          "case": "game",
+          "input_chars": 1496,
+          "passed": false,
+          "error_type": "LLMOutputError",
+          "error_message": "模型输出的痛点等级必须为高、中、低或待确认。",
+          "duration_seconds": 11.14,
+          "events": [
+            {
+              "event": "llm_started",
+              "time": "2026-09-30T06:19:28.712829+00:00",
+              "request_id": "96710fe8442545c8b6fb5555df61257b",
+              "input_chars": 1496,
+              "attempts_reserved": 1
+            },
+            {
+              "event": "llm_usage",
+              "time": "2026-09-30T06:19:39.108529+00:00",
+              "request_id": "96710fe8442545c8b6fb5555df61257b",
+              "input_tokens": 1899,
+              "output_tokens": 2003,
+              "estimated_usd": 0.0029733
+            },
+            {
+              "event": "llm_failed",
+              "time": "2026-09-30T06:19:39.114521+00:00",
+              "request_id": "96710fe8442545c8b6fb5555df61257b",
+              "category": "output_validation",
+              "duration_ms": 10413
+            }
+          ]
+        },
+        {
+          "case": "brand",
+          "input_chars": 2016,
+          "passed": false,
+          "error_type": "LLMOutputError",
+          "error_message": "模型输出的痛点等级必须为高、中、低或待确认。",
+          "duration_seconds": 9.345,
+          "events": [
+            {
+              "event": "llm_started",
+              "time": "2026-09-30T06:19:39.121467+00:00",
+              "request_id": "75aa8c3d65d64004b6d735c213f69b9e",
+              "input_chars": 2016,
+              "attempts_reserved": 1
+            },
+            {
+              "event": "llm_usage",
+              "time": "2026-09-30T06:19:48.453972+00:00",
+              "request_id": "75aa8c3d65d64004b6d735c213f69b9e",
+              "input_tokens": 2198,
+              "output_tokens": 1598,
+              "estimated_usd": 0.002577
+            },
+            {
+              "event": "llm_failed",
+              "time": "2026-09-30T06:19:48.459673+00:00",
+              "request_id": "75aa8c3d65d64004b6d735c213f69b9e",
+              "category": "output_validation",
+              "duration_ms": 9344
+            }
+          ]
+        }
+      ],
+      "scope": "Two fictional integration samples, not accuracy or reliability certification."
+    },
+    {
+      "time_utc": "2026-09-30T06:20:34.582715+00:00",
+      "provider": "deepseek",
+      "max_output_tokens": 6000,
+      "timeout_seconds": 60.0,
+      "max_retries": 0,
+      "sample_count": 1,
+      "passed": 1,
+      "cases": [
+        {
+          "case": "game",
+          "input_chars": 1496,
+          "passed": true,
+          "json_and_schema_valid": true,
+          "evidence_valid": true,
+          "pain_count": 5,
+          "usage": {
+            "input_tokens": 1958,
+            "output_tokens": 2053,
+            "estimated_usd": 0.003051
+          },
+          "model": "deepseek-flash",
+          "duration_seconds": 12.046,
+          "events": [
+            {
+              "event": "llm_started",
+              "time": "2026-09-30T06:20:23.250709+00:00",
+              "request_id": "eece592270514edc878fa95962f8fbf2",
+              "input_chars": 1496,
+              "attempts_reserved": 1
+            },
+            {
+              "event": "llm_usage",
+              "time": "2026-09-30T06:20:34.576638+00:00",
+              "request_id": "eece592270514edc878fa95962f8fbf2",
+              "input_tokens": 1958,
+              "output_tokens": 2053,
+              "estimated_usd": 0.003051
+            },
+            {
+              "event": "llm_completed",
+              "time": "2026-09-30T06:20:34.582594+00:00",
+              "request_id": "eece592270514edc878fa95962f8fbf2",
+              "duration_ms": 11343
+            }
+          ]
+        }
+      ],
+      "scope": "Two fictional integration samples, not accuracy or reliability certification."
+    }
+  ]
+}

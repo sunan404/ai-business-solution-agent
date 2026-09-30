@@ -1,0 +1,16 @@
+[server]
+maxUploadSize = 5
+maxMessageSize = 10
+enableXsrfProtection = true
+enableCORS = true
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+
+[theme]
+base = "light"
+primaryColor = "#2468a0"

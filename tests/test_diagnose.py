@@ -46,4 +46,3 @@ def test_markdown_contains_evidence_excerpt_section() -> None:
     assert "证据摘录" in markdown
     assert "审批依赖聊天确认" in markdown
     assert "下一轮沟通需确认的问题" in markdown
-

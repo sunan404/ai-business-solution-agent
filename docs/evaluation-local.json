@@ -1,0 +1,222 @@
+{
+  "mode": "local",
+  "set": "synthetic-development-v1",
+  "case_count": 25,
+  "tp": 14,
+  "fp": 1,
+  "fn": 1,
+  "pain_precision": 0.9333333333333333,
+  "pain_recall": 0.9333333333333333,
+  "pain_f1": 0.9333333333333333,
+  "pain_exact_match": 0.92,
+  "goal_presence_accuracy": 0.96,
+  "evidence_trace_rate": 1.0,
+  "failures": 0,
+  "details": [
+    {
+      "id": "E01",
+      "expected": [
+        "信息与知识分散"
+      ],
+      "predicted": [
+        "信息与知识分散"
+      ],
+      "exact": true
+    },
+    {
+      "id": "E02",
+      "expected": [
+        "跨团队协作与项目状态不透明"
+      ],
+      "predicted": [
+        "跨团队协作与项目状态不透明"
+      ],
+      "exact": true
+    },
+    {
+      "id": "E03",
+      "expected": [
+        "数据汇总与指标口径不一致"
+      ],
+      "predicted": [
+        "数据汇总与指标口径不一致"
+      ],
+      "exact": true
+    },
+    {
+      "id": "E04",
+      "expected": [
+        "客户或渠道跟进存在断点"
+      ],
+      "predicted": [
+        "客户或渠道跟进存在断点",
+        "跨团队协作与项目状态不透明"
+      ],
+      "exact": false
+    },
+    {
+      "id": "E05",
+      "expected": [
+        "关键审批缺少流程留痕"
+      ],
+      "predicted": [
+        "关键审批缺少流程留痕"
+      ],
+      "exact": true
+    },
+    {
+      "id": "E06",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E07",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E08",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E09",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E10",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E11",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E12",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E13",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E14",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E15",
+      "expected": [
+        "信息与知识分散",
+        "数据汇总与指标口径不一致"
+      ],
+      "predicted": [
+        "信息与知识分散",
+        "数据汇总与指标口径不一致"
+      ],
+      "exact": true
+    },
+    {
+      "id": "E16",
+      "expected": [
+        "关键审批缺少流程留痕",
+        "跨团队协作与项目状态不透明"
+      ],
+      "predicted": [
+        "关键审批缺少流程留痕",
+        "跨团队协作与项目状态不透明"
+      ],
+      "exact": true
+    },
+    {
+      "id": "E17",
+      "expected": [
+        "信息与知识分散"
+      ],
+      "predicted": [
+        "信息与知识分散"
+      ],
+      "exact": true
+    },
+    {
+      "id": "E18",
+      "expected": [
+        "数据汇总与指标口径不一致"
+      ],
+      "predicted": [
+        "数据汇总与指标口径不一致"
+      ],
+      "exact": true
+    },
+    {
+      "id": "E19",
+      "expected": [
+        "客户或渠道跟进存在断点"
+      ],
+      "predicted": [
+        "客户或渠道跟进存在断点"
+      ],
+      "exact": true
+    },
+    {
+      "id": "E20",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E21",
+      "expected": [
+        "跨团队协作与项目状态不透明"
+      ],
+      "predicted": [
+        "跨团队协作与项目状态不透明"
+      ],
+      "exact": true
+    },
+    {
+      "id": "E22",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E23",
+      "expected": [],
+      "predicted": [],
+      "exact": true
+    },
+    {
+      "id": "E24",
+      "expected": [
+        "数据汇总与指标口径不一致"
+      ],
+      "predicted": [
+        "数据汇总与指标口径不一致"
+      ],
+      "exact": true
+    },
+    {
+      "id": "E25",
+      "expected": [
+        "跨团队协作与项目状态不透明"
+      ],
+      "predicted": [],
+      "exact": false
+    }
+  ]
+}

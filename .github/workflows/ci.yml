@@ -1,0 +1,38 @@
+name: Verify and package
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --require-hashes -r requirements-dev.lock
+      - run: ruff check . && ruff format --check . && mypy
+      - run: pytest --cov --cov-report=term-missing --cov-report=xml
+      - run: python -m scripts.evaluate --check
+      - run: python -m scripts.package_release
+      - run: python -m scripts.verify_release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: delivery-bundle
+          path: dist/ai-business-solution-agent-*.zip
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t diagnosis:test .
+      - name: No test framework in production image
+        run: docker run --rm --entrypoint python diagnosis:test -c "import importlib.util; assert importlib.util.find_spec('pytest') is None"
+      - name: Container smoke test (local mode)
+        run: |
+          docker run -d --name diagnosis -e APP_ENV=development -p 127.0.0.1:8501:8501 diagnosis:test
+          for i in $(seq 1 30); do
+            if curl --fail http://127.0.0.1:8501/_stcore/health; then break; fi
+            sleep 2
+          done
+          docker exec diagnosis python -c "from src.diagnose import diagnose; from src.ingest import read_demo_text; from pathlib import Path; assert diagnose(read_demo_text(Path('data/demo_game_publisher.md')))['pain_points']"
+          curl --fail http://127.0.0.1:8501/_stcore/health

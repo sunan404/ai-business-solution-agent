@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8501:8501"
+    env_file: .env
+    environment:
+      APP_ENV: production
+      QUOTA_DB_PATH: /app/runtime/quota.sqlite3
+    volumes:
+      - quota:/app/runtime
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+volumes:
+  quota:

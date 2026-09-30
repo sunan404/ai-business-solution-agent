@@ -1,0 +1,17 @@
+*
+!app.py
+!src/
+!src/*.py
+!data/
+!data/*.md
+!data/*.xlsx
+!docs/
+!docs/privacy.md
+!docs/terms.md
+!docs/data-processing.md
+!.streamlit/
+!.streamlit/config.toml
+!requirements.txt
+!requirements.lock
+!pyproject.toml
+!LICENSE

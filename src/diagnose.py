@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
+from .ingest import validate_text
+from .priority import priority
 from .retrieve import find_evidence, split_evidence_units
 
 
@@ -49,46 +52,134 @@ GOAL_RULES = (
 CONCERN_RULE = FactRule("客户关注点", ("关心", "关注", "担心", "希望", "优先", "关键", "是否能", "要求"))
 
 PAIN_RULES = (
-    PainRule("信息与知识分散", ("资料分散", "找不到", "重复收集", "难以检索", "最新版本"), "建立按业务主题、地区/渠道和项目归档的共享知识库；设置资料负责人、标签、版本和更新规则。"),
-    PainRule("跨团队协作与项目状态不透明", ("多个表格", "不同步", "截止时间", "延期", "无法同步", "交接"), "在统一项目空间维护里程碑、任务负责人、依赖关系、素材版本和风险；用固定节奏同步阻塞项。"),
-    PainRule("客户或渠道跟进存在断点", ("跟进状态", "历史沟通", "遗漏", "客户问题", "交接时", "漏跟进"), "统一客户/渠道档案、合作阶段、下一步动作和交接清单，并为逾期跟进建立提醒。"),
-    PainRule("数据汇总与指标口径不一致", ("手工汇总", "数据口径", "指标口径", "数据不同", "汇总慢"), "先明确指标定义、数据来源、更新负责人和复盘周期，再沉淀可追溯的数据看板。"),
-    PainRule("关键审批缺少流程留痕", ("审批", "聊天确认", "流程记录", "可追溯", "漏批", "审批等待"), "把预算、对外内容等关键事项配置为标准表单和审批流，明确审批人、时限及留痕规则。"),
+    PainRule(
+        "信息与知识分散",
+        ("资料分散", "找不到", "重复收集", "难以检索", "最新版本"),
+        "建立按业务主题、地区/渠道和项目归档的共享知识库；设置资料负责人、标签、版本和更新规则。",
+    ),
+    PainRule(
+        "跨团队协作与项目状态不透明",
+        ("多个表格", "不同步", "截止时间", "延期", "无法同步", "交接"),
+        "在统一项目空间维护里程碑、任务负责人、依赖关系、素材版本和风险；用固定节奏同步阻塞项。",
+    ),
+    PainRule(
+        "客户或渠道跟进存在断点",
+        ("跟进状态", "历史沟通", "遗漏", "客户问题", "交接时", "漏跟进"),
+        "统一客户/渠道档案、合作阶段、下一步动作和交接清单，并为逾期跟进建立提醒。",
+    ),
+    PainRule(
+        "数据汇总与指标口径不一致",
+        ("手工汇总", "数据口径", "指标口径", "数据不同", "汇总慢"),
+        "先明确指标定义、数据来源、更新负责人和复盘周期，再沉淀可追溯的数据看板。",
+    ),
+    PainRule(
+        "关键审批缺少流程留痕",
+        ("审批", "聊天确认", "流程记录", "可追溯", "漏批", "审批等待"),
+        "把预算、对外内容等关键事项配置为标准表单和审批流，明确审批人、时限及留痕规则。",
+    ),
 )
 
 IMPACT_TERMS = ("收入", "销售", "客户", "渠道", "经销商", "上线", "合同", "预算", "交付", "核心", "覆盖")
 MEDIUM_IMPACT_TERMS = ("延期", "遗漏", "漏", "返工", "风险", "耗时", "两天", "三天", "问题响应")
-HIGH_URGENCY_TERMS = ("今天", "本周", "本月", "90 天", "90天", "截止", "即将", "正在", "延期", "漏", "每天", "每周")
+HIGH_URGENCY_TERMS = (
+    "今天",
+    "本周",
+    "本月",
+    "90 天",
+    "90天",
+    "截止",
+    "即将",
+    "正在",
+    "延期",
+    "漏",
+    "每天",
+    "每周",
+)
 MEDIUM_URGENCY_TERMS = ("每月", "季度", "尽快", "优先", "希望", "需要")
 
 
-def _evidence_items(text: str, keywords: tuple[str, ...], limit: int = 3) -> list[dict[str, object]]:
-    return [{"quote": quote, "matched_terms": [term for term in keywords if term.lower() in quote.lower()]} for quote in find_evidence(text, list(keywords), limit)]
+UNKNOWN = re.compile(r"尚未确认|未确认|未提供|待确认|尚未说明|尚未确定")
+INTENT = re.compile(r"希望|目标|计划|旨在|准备|要求|要在")
+PROBLEM = re.compile(
+    r"分散|找不到|重复|难以|不同步|延期|晚于|无法|未写入|遗漏|漏跟进|缺少|等待|没有统一|没有记录|不一致|不同|手工汇总|汇总慢|散落|漏批"
+)
+BENIGN = re.compile(
+    r"(?:没有|不存在|未发生|未出现|不再|并无)(?:任何)?(?:延期|遗漏|漏批|资料分散|数据口径问题|审批问题|协作问题)|审批(?:正常|顺畅)|无需审批"
+)
 
 
-def _extract_facts(text: str, rules: tuple[FactRule, ...]) -> list[dict[str, object]]:
+def _evidence_items(
+    text: str, keywords: tuple[str, ...], limit: int = 3, purpose: str = "fact"
+) -> list[dict[str, object]]:
+    candidates = find_evidence(text, list(keywords), limit=10000)
+    matches = []
+    for quote in candidates:
+        if purpose != "pain" and UNKNOWN.search(quote):
+            continue
+        if purpose == "goal" and not INTENT.search(quote):
+            continue
+        if purpose == "pain" and (BENIGN.search(quote) or not PROBLEM.search(quote)):
+            continue
+        if (
+            purpose == "pain"
+            and INTENT.search(quote)
+            and not re.search(r"当前|目前|已经|上周|本周|仍|导致|造成|出现|担心", quote)
+        ):
+            continue
+        if purpose == "fact" and any(
+            re.search(r"(?:未使用|没有使用|不使用|未部署|没有部署)\s*" + re.escape(term), quote, re.I)
+            for term in keywords
+        ):
+            continue
+        matches.append(
+            {"quote": quote, "matched_terms": [term for term in keywords if term.lower() in quote.lower()]}
+        )
+    if purpose == "role":
+        matches.sort(key=lambda item: "负责" not in str(item["quote"]))
+    return matches[:limit]
+
+
+def _extract_facts(text: str, rules: tuple[FactRule, ...], purpose: str = "fact") -> list[dict[str, object]]:
     facts: list[dict[str, object]] = []
     for rule in rules:
-        evidence = _evidence_items(text, rule.keywords, limit=2)
+        evidence = _evidence_items(text, rule.keywords, limit=2, purpose=purpose)
         if evidence:
             facts.append({"label": rule.label, "evidence": evidence})
     return facts
 
 
-def _levels(evidence: list[dict[str, object]], all_roles: list[dict[str, object]]) -> tuple[str, str, int, str]:
+def _levels(
+    evidence: list[dict[str, object]], all_roles: list[dict[str, object]]
+) -> tuple[str, str, int, str]:
     combined = " ".join(str(item["quote"]) for item in evidence)
-    impact_score = 3 if any(term in combined for term in IMPACT_TERMS) else 2 if any(term in combined for term in MEDIUM_IMPACT_TERMS) else 1
-    roles_in_evidence = {fact["label"] for fact in all_roles if any(str(ev["quote"]) in combined for ev in fact["evidence"])}
-    if len(roles_in_evidence) >= 2:
+    impact_score = (
+        3
+        if any(term in combined for term in IMPACT_TERMS)
+        else 2
+        if any(term in combined for term in MEDIUM_IMPACT_TERMS)
+        else 0
+    )
+    roles_in_evidence = {
+        fact["label"] for fact in all_roles if any(str(ev["quote"]) in combined for ev in fact["evidence"])
+    }
+    if len(roles_in_evidence) >= 2 and impact_score:
         impact_score = min(3, impact_score + 1)
-    urgency_score = 3 if any(term in combined for term in HIGH_URGENCY_TERMS) else 2 if any(term in combined for term in MEDIUM_URGENCY_TERMS) else 1
-    level = {1: "低", 2: "中", 3: "高"}
-    priority_score = impact_score * 2 + urgency_score
+    urgency_score = (
+        3
+        if any(term in combined for term in HIGH_URGENCY_TERMS)
+        else 2
+        if any(term in combined for term in MEDIUM_URGENCY_TERMS)
+        else 0
+    )
+    level = {0: "待确认", 1: "低", 2: "中", 3: "高"}
+    priority_score, _ = priority(level[impact_score], level[urgency_score])
     rationale = f"影响程度为{level[impact_score]}，紧迫程度为{level[urgency_score]}；评分依据仅来自下方证据摘录中的业务后果、时限或频率描述。"
     return level[impact_score], level[urgency_score], priority_score, rationale
 
 
-def _missing_questions(facts: dict[str, list[dict[str, object]]], pain_points: list[dict[str, object]]) -> list[str]:
+def _missing_questions(
+    facts: dict[str, list[dict[str, object]]], pain_points: list[dict[str, object]]
+) -> list[str]:
     questions: list[str] = []
     if not facts["goals"]:
         questions.append("本次希望优先达成什么业务结果？请提供目标指标、目标值和期望完成时间。")
@@ -100,7 +191,14 @@ def _missing_questions(facts: dict[str, list[dict[str, object]]], pain_points: l
         questions.append("客户当前最希望优先解决的问题是什么？判断改善是否成功的标准是什么？")
     if not pain_points:
         questions.append("请描述一条实际受阻流程：从开始到交付的步骤、频率、耗时、参与角色和造成的业务影响。")
-    questions.extend(["如需优先推进一个改进项，您愿意用哪个指标衡量成效，例如交付周期、漏跟进率或复盘准备时间？", "哪些资料或数据必须成为唯一可信来源？请确认更新负责人、更新频率和访问权限。"])
+    if any(pain["impact"] == "待确认" or pain["urgency"] == "待确认" for pain in pain_points):
+        questions.append("已识别问题的业务影响、发生频率与截止时间是什么？缺少这些信息，优先级仍待确认。")
+    questions.extend(
+        [
+            "如需优先推进一个改进项，您愿意用哪个指标衡量成效，例如交付周期、漏跟进率或复盘准备时间？",
+            "哪些资料或数据必须成为唯一可信来源？请确认更新负责人、更新频率和访问权限。",
+        ]
+    )
     return list(dict.fromkeys(questions))[:5]
 
 
@@ -109,18 +207,34 @@ def diagnose(text: str, case_name: str = "自定义资料") -> dict:
     if not text or not text.strip():
         raise ValueError("请粘贴资料、上传文件或选择一个演示案例。")
 
-    facts = {"goals": _extract_facts(text, GOAL_RULES), "roles": _extract_facts(text, ROLE_RULES), "tools": _extract_facts(text, TOOL_RULES), "concerns": _extract_facts(text, (CONCERN_RULE,))}
+    validate_text(text)
+    facts = {
+        "goals": _extract_facts(text, GOAL_RULES, "goal"),
+        "roles": _extract_facts(text, ROLE_RULES, "role"),
+        "tools": _extract_facts(text, TOOL_RULES),
+        "concerns": _extract_facts(text, (CONCERN_RULE,)),
+    }
     pain_points: list[dict[str, object]] = []
     for rule in PAIN_RULES:
-        evidence = _evidence_items(text, rule.issue_keywords)
+        evidence = _evidence_items(text, rule.issue_keywords, purpose="pain")
         if evidence:
             impact, urgency, priority_score, rationale = _levels(evidence, facts["roles"])
-            pain_points.append({"title": rule.title, "impact": impact, "urgency": urgency, "priority": "待排序", "priority_score": priority_score, "rationale": rationale, "evidence": evidence, "suggestion": rule.recommendation})
+            pain_points.append(
+                {
+                    "title": rule.title,
+                    "impact": impact,
+                    "urgency": urgency,
+                    "priority": "待排序",
+                    "priority_score": priority_score,
+                    "rationale": rationale,
+                    "evidence": evidence,
+                    "suggestion": rule.recommendation,
+                }
+            )
 
     pain_points.sort(key=lambda item: (int(item["priority_score"]), len(item["evidence"])), reverse=True)
     for pain in pain_points:
-        score = int(pain["priority_score"])
-        pain["priority"] = "高" if score >= 8 else "中" if score >= 5 else "低"
+        _, pain["priority"] = priority(str(pain["impact"]), str(pain["urgency"]))
 
     source_units = split_evidence_units(text)
     return {

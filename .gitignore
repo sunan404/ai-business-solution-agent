@@ -14,3 +14,12 @@ venv/
 reports/
 node_modules/
 *.inspect.ndjson
+.agents/
+runtime/
+dist/
+build/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+coverage.xml
+media/raw/

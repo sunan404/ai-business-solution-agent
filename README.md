@@ -154,7 +154,7 @@ Compose 默认只绑定 `127.0.0.1:8501`，配额使用持久化 volume。镜像
 
 打包生成 `dist/ai-business-solution-agent-0.2.0.zip`，按白名单纳入运行代码、示例、文档、测试、截图与视频，不带 `.env`、`.agents`、`node_modules`、虚拟环境、缓存或配额数据库。不直接打包整个工作目录。
 
-Mypy 当前检查配置、预算、日志、评分和鉴权五个模块，不声称全仓库严格类型覆盖。GitHub Actions 已配置；远程执行结果需看仓库 Actions，本地验证不等于 CI 已运行。
+Mypy 当前检查配置、预算、日志、评分和鉴权五个模块，不声称全仓库严格类型覆盖。[真实完整 CI](https://github.com/sunan404/ai-business-solution-agent/actions/runs/36678520170) 已通过测试、静态检查、打包解压验证与 Linux Docker 构建/容器 smoke。当前 main 的后续构建状态可查看仓库 Actions；通过 CI 不等于已部署到客户生产环境。
 
 ## 评估与可证明的结果
 

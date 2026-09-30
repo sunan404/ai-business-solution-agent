@@ -30,6 +30,8 @@
 
 已完成真实 DeepSeek 小样本联调：保留 7 次调用及失败记录，修正后两个虚构案例分别通过字段和证据校验；没有语义质量基线、真实客户指标、企业合同验收、渗透测试或 SLA。当前环境没有 Docker，不声称本地构建已验证。[首次真实 Actions](https://github.com/sunan404/ai-business-solution-agent/actions/runs/36678357908) 的 Docker 构建、无 pytest 检查与容器 smoke 均通过；测试任务暴露未安装源包时 pytest 导入路径问题，已改为模块方式运行并显式配置项目路径，后续完整验证另行记录。
 
+[修复后的完整 CI](https://github.com/sunan404/ai-business-solution-agent/actions/runs/36678520170)（提交 `b4e60c3`）已真实全部通过：Python 3.12/Linux 的锁文件安装、Ruff、Mypy、49 项测试、规则评估、打包/解压验证与交付 artifact；Docker 构建、运行镜像无 pytest 检查、健康端点和本地诊断 smoke。容器在 GitHub runner 构建运行，不等于已经部署到客户生产服务器。
+
 本轮新增：中文最大输入与预算自洽检查、默认 2,000,000 预留预算、6,000 输出上限、全局和服务端租户双限额、返回用量计量；带 hash 的锁文件、无 pytest 的运行镜像、固定基础镜像 digest；版本号从 pyproject 单一读取；最小工具栏和移除帮助菜单。登录冷却不是服务端限流，已明确披露。授权版权主体为维护者 sunan404，合同签约主体仍需运营方确认。
 
 政策与协议是技术说明与草案，未由律师针对特定部署审核。共享口令、单实例 SQLite 和基础日志适合受控试点；正式企业上线仍需身份/权限、HTTPS/限速、监控、服务商侧预算与实际数据处理安排。

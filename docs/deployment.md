@@ -54,4 +54,4 @@ JSON 日志到标准错误输出，含事件名、随机诊断编号、错误类
 
 ## 当前验证边界
 
-本地测试与浏览器演示可在无 API Key 情况下验证。当前工作环境未安装 Docker，因此不声称镜像已经本地构建通过；CI 提供构建与容器 smoke 检查，需发布后核验实际 Actions 结果。政策材料未经律师审查，也没有真实客户合同验收记录。
+本地测试与浏览器演示可在无 API Key 情况下验证。Windows 工作环境未安装 Docker；[GitHub Actions](https://github.com/sunan404/ai-business-solution-agent/actions/runs/36678520170) 已真实完成 Linux 镜像构建、无测试框架检查和容器 smoke，完整测试与打包任务也通过。真实 DeepSeek 联调见 evaluation.md，但不是企业质量验收。政策材料未经律师审查，也没有真实客户合同验收记录。

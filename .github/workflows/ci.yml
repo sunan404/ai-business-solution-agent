@@ -12,7 +12,7 @@ jobs:
           python-version: "3.12"
       - run: pip install --require-hashes -r requirements-dev.lock
       - run: ruff check . && ruff format --check . && mypy
-      - run: pytest --cov --cov-report=term-missing --cov-report=xml
+      - run: python -m pytest --cov --cov-report=term-missing --cov-report=xml
       - run: python -m scripts.evaluate --check
       - run: python -m scripts.package_release
       - run: python -m scripts.verify_release

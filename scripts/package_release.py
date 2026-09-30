@@ -26,6 +26,7 @@ def release_files(root: Path) -> list[Path]:
             "compose.yaml",
             ".dockerignore",
             ".gitignore",
+            ".gitattributes",
             ".env.example",
             ".streamlit/config.toml",
             ".github/workflows/ci.yml",

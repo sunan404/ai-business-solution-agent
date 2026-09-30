@@ -125,6 +125,10 @@ with st.sidebar:
     st.divider()
     st.header("诊断模式")
     analysis_mode = st.radio("选择诊断模式", ["本地规则模式", "LLM 增强模式"], label_visibility="collapsed")
+    if model_service == "DeepSeek" and analysis_mode == "LLM 增强模式":
+        st.warning(
+            "DeepSeek 为实验通道：JSON 模式不强制字段结构；校验失败不会生成报告，已预留额度不退。请优先使用虚构资料试用。"
+        )
     if analysis_mode == "本地规则模式":
         st.success("无需 API Key，不向模型服务发送资料。远程部署时资料会到达部署服务器。")
     elif is_llm_configured():

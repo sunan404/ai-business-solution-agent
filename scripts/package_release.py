@@ -48,6 +48,10 @@ def release_files(root: Path) -> list[Path]:
 
 
 def main() -> None:
+    # Imported here to avoid the shared allowlist helper's circular import.
+    from scripts.check_delivery import check_delivery
+
+    check_delivery(ROOT)
     destination = ROOT / "dist" / bundle_name()
     destination.parent.mkdir(exist_ok=True)
     with ZipFile(destination, "w", ZIP_DEFLATED) as archive:

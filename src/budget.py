@@ -85,7 +85,7 @@ def record_usage(
             if input_tokens is None or output_tokens is None:
                 return True
             db.execute(
-                "INSERT INTO usage_daily VALUES (?, ?, 1, ?, ?, ?) ON CONFLICT(day, tenant_id) DO UPDATE SET measured_responses=measured_responses+1, input_tokens=input_tokens+excluded.input_tokens, output_tokens=output_tokens+excluded.output_tokens, estimated_usd=estimated_usd+excluded.estimated_usd",
+                "INSERT INTO usage_daily VALUES (?, ?, 1, ?, ?, ?) ON CONFLICT(day, tenant_id) DO UPDATE SET measured_responses=measured_responses+1, input_tokens=input_tokens+excluded.input_tokens, output_tokens=output_tokens+excluded.output_tokens, estimated_usd=CASE WHEN estimated_usd IS NULL AND excluded.estimated_usd IS NULL THEN NULL ELSE COALESCE(estimated_usd, 0)+COALESCE(excluded.estimated_usd, 0) END",
                 (day, settings.tenant_id, input_tokens, output_tokens, estimated_usd),
             )
             db.execute("DELETE FROM usage_daily WHERE day < date(?, '-30 days')", (day,))

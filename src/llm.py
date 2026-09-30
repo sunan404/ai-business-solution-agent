@@ -312,7 +312,7 @@ def diagnose_with_llm(text: str, case_name: str = "自定义资料") -> dict[str
     except ImportError as exc:
         raise LLMConfigurationError("未安装 OpenAI SDK。请安装 requirements.txt 中的依赖后重试。") from exc
 
-    model = (
+    model = os.getenv("LLM_MODEL", "").strip() or (
         (os.getenv("DEEPSEEK_MODEL", "deepseek-flash").strip() or "deepseek-flash")
         if provider == "deepseek"
         else (os.getenv("OPENAI_MODEL", "gpt-4.1-mini").strip() or "gpt-4.1-mini")

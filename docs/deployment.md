@@ -30,6 +30,8 @@ SDK 重试仅适用于其网络/状态码规则；单次超时默认 30 秒、�
 
 OpenAI 使用 `OPENAI_API_KEY`，DeepSeek 使用 `DEEPSEEK_API_KEY`，由 `LLM_PROVIDER` 选择。公共 API 的模型名与权限可能变化，部署前核验账户可用型号。DeepSeek JSON 模式不等于服务器强制 schema，应用仍严格拒绝字段、等级或证据不合格的输出。
 
+DeepSeek 明确为实验通道，长文档校准仍出现证据错误，详见 evaluation.md；不能以少量通过案例承诺交付完成率。通用配置 `LLM_TIMEOUT_SECONDS` / `LLM_MAX_RETRIES` / `LLM_MAX_OUTPUT_TOKENS` 优先于旧 `OPENAI_*` 名称；非空 `LLM_MODEL` 优先于服务商专用模型变量。未配置费率的用量不估价；同日后来设置费率只累加可估价部分，展示合计不是完整账单，不能将未知费用当作免费。
+
 登录页面的 3 秒等待只是会话冷却，没有服务端/IP 尝试计数，可被新会话绕过；不能当成防爆破限流。公网前必须配置反向代理限流或替换为合适的身份系统。
 
 ## 可复现依赖

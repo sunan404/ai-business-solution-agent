@@ -1,52 +1,97 @@
 {
-  "time_utc": "2026-09-30T06:22:24.508600+00:00",
+  "all_time_success_rate": "3/9",
+  "cumulative": {
+    "attempts": 9,
+    "passed": 3,
+    "failed": 6,
+    "success_rate": 0.3333333333333333,
+    "long_document_attempts": 2,
+    "long_document_passed": 1,
+    "scope": "Integration validation across prompt revisions, not accuracy or production reliability."
+  },
+  "time_utc": "2026-09-30T07:17:22.545698+00:00",
   "provider": "deepseek",
   "max_output_tokens": 6000,
   "timeout_seconds": 60.0,
   "max_retries": 0,
-  "sample_count": 1,
+  "sample_count": 2,
   "passed": 1,
   "cases": [
     {
-      "case": "brand",
-      "input_chars": 2016,
+      "case": "long-game",
+      "input_chars": 22218,
+      "input_sha256": "4dd4e49037436de503a7d046ac5c974cff9b89c3166799147501206663fd1ad5",
       "passed": true,
       "json_and_schema_valid": true,
       "evidence_valid": true,
       "pain_count": 5,
       "usage": {
-        "input_tokens": 2257,
-        "output_tokens": 1457,
-        "estimated_usd": 0.0024255
+        "input_tokens": 13849,
+        "output_tokens": 1979,
+        "estimated_usd": 0.0065295
       },
       "model": "deepseek-flash",
-      "duration_seconds": 9.597,
+      "duration_seconds": 12.833,
       "events": [
         {
           "event": "llm_started",
-          "time": "2026-09-30T06:22:15.607986+00:00",
-          "request_id": "ed265c01fdcb4e09a6c31dbc8f9a98d9",
-          "input_chars": 2016,
+          "time": "2026-09-30T07:16:59.000243+00:00",
+          "request_id": "b744a7e7c46b4011a4cc17f506641b11",
+          "input_chars": 22218,
           "attempts_reserved": 1
         },
         {
           "event": "llm_usage",
-          "time": "2026-09-30T06:22:24.500166+00:00",
-          "request_id": "ed265c01fdcb4e09a6c31dbc8f9a98d9",
-          "input_tokens": 2257,
-          "output_tokens": 1457,
-          "estimated_usd": 0.0024255
+          "time": "2026-09-30T07:17:10.625242+00:00",
+          "request_id": "b744a7e7c46b4011a4cc17f506641b11",
+          "input_tokens": 13849,
+          "output_tokens": 1979,
+          "estimated_usd": 0.0065295
         },
         {
           "event": "llm_completed",
-          "time": "2026-09-30T06:22:24.508413+00:00",
-          "request_id": "ed265c01fdcb4e09a6c31dbc8f9a98d9",
-          "duration_ms": 8912
+          "time": "2026-09-30T07:17:10.635189+00:00",
+          "request_id": "b744a7e7c46b4011a4cc17f506641b11",
+          "duration_ms": 11656
+        }
+      ]
+    },
+    {
+      "case": "long-brand",
+      "input_chars": 22025,
+      "input_sha256": "b8692267410d8c8a8eb26f7fc8dc7154226b6ba6423578c61ae814e00e37982a",
+      "passed": false,
+      "error_type": "LLMOutputError",
+      "error_message": "模型输出的 team_roles 包含无法回溯到原文的证据摘录。",
+      "duration_seconds": 11.91,
+      "events": [
+        {
+          "event": "llm_started",
+          "time": "2026-09-30T07:17:10.640163+00:00",
+          "request_id": "e03df9aa116d40c3969c3ff95d349dd3",
+          "input_chars": 22025,
+          "attempts_reserved": 1
+        },
+        {
+          "event": "llm_usage",
+          "time": "2026-09-30T07:17:22.539126+00:00",
+          "request_id": "e03df9aa116d40c3969c3ff95d349dd3",
+          "input_tokens": 13710,
+          "output_tokens": 1707,
+          "estimated_usd": 0.0061614
+        },
+        {
+          "event": "llm_failed",
+          "time": "2026-09-30T07:17:22.545578+00:00",
+          "request_id": "e03df9aa116d40c3969c3ff95d349dd3",
+          "category": "output_validation",
+          "duration_ms": 11910
         }
       ]
     }
   ],
-  "scope": "Two fictional integration samples, not accuracy or reliability certification.",
+  "prompt_revision": "schema-enums-v2",
+  "scope": "Fictional integration samples, not accuracy or reliability certification.",
   "previous_runs": [
     {
       "time_utc": "2026-09-30T06:10:25.575743+00:00",
@@ -286,6 +331,56 @@
               "time": "2026-09-30T06:20:34.582594+00:00",
               "request_id": "eece592270514edc878fa95962f8fbf2",
               "duration_ms": 11343
+            }
+          ]
+        }
+      ],
+      "scope": "Two fictional integration samples, not accuracy or reliability certification."
+    },
+    {
+      "time_utc": "2026-09-30T06:22:24.508600+00:00",
+      "provider": "deepseek",
+      "max_output_tokens": 6000,
+      "timeout_seconds": 60.0,
+      "max_retries": 0,
+      "sample_count": 1,
+      "passed": 1,
+      "cases": [
+        {
+          "case": "brand",
+          "input_chars": 2016,
+          "passed": true,
+          "json_and_schema_valid": true,
+          "evidence_valid": true,
+          "pain_count": 5,
+          "usage": {
+            "input_tokens": 2257,
+            "output_tokens": 1457,
+            "estimated_usd": 0.0024255
+          },
+          "model": "deepseek-flash",
+          "duration_seconds": 9.597,
+          "events": [
+            {
+              "event": "llm_started",
+              "time": "2026-09-30T06:22:15.607986+00:00",
+              "request_id": "ed265c01fdcb4e09a6c31dbc8f9a98d9",
+              "input_chars": 2016,
+              "attempts_reserved": 1
+            },
+            {
+              "event": "llm_usage",
+              "time": "2026-09-30T06:22:24.500166+00:00",
+              "request_id": "ed265c01fdcb4e09a6c31dbc8f9a98d9",
+              "input_tokens": 2257,
+              "output_tokens": 1457,
+              "estimated_usd": 0.0024255
+            },
+            {
+              "event": "llm_completed",
+              "time": "2026-09-30T06:22:24.508413+00:00",
+              "request_id": "ed265c01fdcb4e09a6c31dbc8f9a98d9",
+              "duration_ms": 8912
             }
           ]
         }

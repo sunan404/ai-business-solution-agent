@@ -11,6 +11,7 @@ from zipfile import ZipFile
 
 from openpyxl import load_workbook
 
+from scripts.check_delivery import TEXT_SUFFIXES, validate_delivery_text
 from src.version import bundle_name
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,6 +25,9 @@ PATTERNS = [
 def main() -> None:
     with ZipFile(ROOT / "dist" / bundle_name()) as archive:
         names = archive.namelist()
+        for name in names:
+            if Path(name).suffix in TEXT_SUFFIXES:
+                validate_delivery_text(archive.read(name).decode("utf-8"), name)
         assert not any(
             name.endswith("/.env")
             or any(

@@ -26,6 +26,11 @@ def service_name() -> str:
     return {"openai": "OpenAI", "deepseek": "DeepSeek"}[provider_name()]
 
 
+def setting_name(name: str, legacy: str) -> str:
+    """New LLM_* settings take precedence, including invalid values (never silently fall back)."""
+    return name if name in os.environ else legacy
+
+
 def env_int(name: str, default: int, minimum: int, maximum: int) -> int:
     try:
         value = int(os.getenv(name, str(default)))
@@ -63,9 +68,11 @@ class LLMSettings:
     @classmethod
     def load(cls) -> "LLMSettings":
         settings = cls(
-            timeout=env_float("OPENAI_TIMEOUT_SECONDS", 30, 1, 60),
-            retries=env_int("OPENAI_MAX_RETRIES", 1, 0, 2),
-            max_output_tokens=env_int("OPENAI_MAX_OUTPUT_TOKENS", 6000, 256, 12000),
+            timeout=env_float(setting_name("LLM_TIMEOUT_SECONDS", "OPENAI_TIMEOUT_SECONDS"), 30, 1, 60),
+            retries=env_int(setting_name("LLM_MAX_RETRIES", "OPENAI_MAX_RETRIES"), 1, 0, 2),
+            max_output_tokens=env_int(
+                setting_name("LLM_MAX_OUTPUT_TOKENS", "OPENAI_MAX_OUTPUT_TOKENS"), 6000, 256, 12000
+            ),
             daily_requests=env_int("LLM_DAILY_REQUEST_LIMIT", 20, 1, 1000),
             daily_tokens=env_int("LLM_DAILY_TOKEN_BUDGET", 2000000, 1, 10000000),
             daily_usd=env_float("LLM_DAILY_USD_BUDGET", 0, 0, 1000),

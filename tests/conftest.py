@@ -4,6 +4,8 @@ import pytest
 @pytest.fixture(autouse=True)
 def isolated_runtime(monkeypatch, tmp_path):
     # No real credentials, network budget database or deployment settings in tests.
+    for name in ("LLM_MODEL", "LLM_TIMEOUT_SECONDS", "LLM_MAX_RETRIES", "LLM_MAX_OUTPUT_TOKENS"):
+        monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "")
     monkeypatch.setenv("LLM_PROVIDER", "openai")
     monkeypatch.setenv("DEEPSEEK_API_KEY", "")

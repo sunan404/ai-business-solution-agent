@@ -86,6 +86,7 @@ def test_deepseek_chat_uses_own_key_and_validates_output(monkeypatch):
 
     monkeypatch.setenv("LLM_PROVIDER", "deepseek")
     monkeypatch.setenv("DEEPSEEK_API_KEY", "test-placeholder-not-a-credential")
+    monkeypatch.setenv("LLM_MODEL", "test-selected-model")
     monkeypatch.setattr(openai, "OpenAI", Client)
     report = diagnose_with_llm(SOURCE)
     assert report["provider"] == "deepseek"
@@ -93,6 +94,7 @@ def test_deepseek_chat_uses_own_key_and_validates_output(monkeypatch):
     assert captured["base_url"] == "https://api.deepseek.com"
     assert captured["request"]["response_format"] == {"type": "json_object"}
     assert captured["request"]["max_tokens"] == 6000
+    assert captured["request"]["model"] == "test-selected-model"
 
 
 def test_deepseek_does_not_use_openai_key(monkeypatch):

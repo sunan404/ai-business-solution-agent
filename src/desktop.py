@@ -442,10 +442,11 @@ def main(argv: list[str] | None = None) -> int:
         if options.smoke_test or options.gui_smoke_test:
             destination = options.smoke_test or options.gui_smoke_test
             destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_text(
-                json.dumps({"passed": False, "error_type": type(exc).__name__, "check_error": str(exc)}),
-                encoding="utf-8",
-            )
+            if not options.gui_smoke_test or not destination.exists():
+                destination.write_text(
+                    json.dumps({"passed": False, "error_type": type(exc).__name__, "check_error": str(exc)}),
+                    encoding="utf-8",
+                )
         elif options.serve and options.startup_status:
             options.startup_status.write_text(
                 json.dumps({"error_type": type(exc).__name__, "missing_module": getattr(exc, "name", None)}),

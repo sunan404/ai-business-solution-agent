@@ -30,23 +30,29 @@ jobs:
         run: |
           $client = Start-Process -FilePath .\dist\BusinessDiagnosis\BusinessDiagnosis.exe -ArgumentList '--smoke-test', 'desktop-smoke.json' -WindowStyle Hidden -PassThru
           if (-not $client.WaitForExit(180000)) { $client.Kill(); throw 'Smoke test timed out' }
+          if (Test-Path desktop-smoke.json) { Get-Content desktop-smoke.json }
           if ($client.ExitCode -ne 0) { throw 'Smoke test failed' }
           $result = Get-Content desktop-smoke.json | ConvertFrom-Json
           if (-not $result.passed -or -not $result.frozen) { throw 'Frozen app verification failed' }
       - name: Verify the native WebView2 window
         shell: pwsh
         run: |
-          $client = Start-Process -FilePath .\dist\BusinessDiagnosis\BusinessDiagnosis.exe -ArgumentList '--gui-smoke-test', 'desktop-gui-smoke.json' -WindowStyle Hidden -PassThru
-          if (-not $client.WaitForExit(180000)) { $client.Kill(); throw 'Native window test timed out' }
-          if ($client.ExitCode -ne 0) { throw 'Native window test failed' }
-          $result = Get-Content desktop-gui-smoke.json | ConvertFrom-Json
-          if (-not $result.passed -or -not $result.frozen) { throw 'Native frozen app verification failed' }
+          foreach ($run in 1..3) {
+            $report = "desktop-gui-smoke-$run.json"
+            $client = Start-Process -FilePath .\dist\BusinessDiagnosis\BusinessDiagnosis.exe -ArgumentList '--gui-smoke-test', $report -WindowStyle Hidden -PassThru
+            if (-not $client.WaitForExit(180000)) { $client.Kill(); throw 'Native window test timed out' }
+            if (Test-Path $report) { Get-Content $report }
+            if ($client.ExitCode -ne 0) { throw "Native window test $run failed" }
+            $result = Get-Content $report | ConvertFrom-Json
+            if (-not $result.passed -or -not $result.frozen) { throw 'Native frozen app verification failed' }
+          }
       - run: python -m scripts.package_desktop
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: windows-client
           path: |
             dist/BusinessDiagnosis-*-windows-x64.zip
             dist/BusinessDiagnosis-*-windows-x64.zip.sha256
             desktop-smoke.json
-            desktop-gui-smoke.json
+            desktop-gui-smoke*.json

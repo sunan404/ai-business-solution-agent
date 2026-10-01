@@ -10,6 +10,7 @@ __pycache__/
 .coverage
 htmlcov/
 .venv/
+.venv-build/
 venv/
 reports/
 node_modules/

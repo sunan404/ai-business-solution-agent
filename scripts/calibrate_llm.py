@@ -90,6 +90,11 @@ def main() -> None:
     parser.add_argument("--allow-paid-api", action="store_true")
     parser.add_argument("--case", choices=["game", "brand", "both", "long"], default="both")
     parser.add_argument(
+        "--dump-rejected",
+        action="store_true",
+        help="把校验失败的原始模型输出写到 runtime/rejected/（Git 忽略，仅限虚构样例）",
+    )
+    parser.add_argument(
         "--summarize-only", action="store_true", help="Refresh cumulative metrics without an API call"
     )
     args = parser.parse_args()
@@ -127,8 +132,13 @@ def main() -> None:
                 "input_chars": len(text),
                 "input_sha256": hashlib.sha256(text.encode()).hexdigest(),
             }
+            rejected: list[str] = []
+
+            def capture_rejected(raw: str) -> None:
+                rejected.append(raw)
+
             try:
-                report = diagnose_with_llm(text, f"fictional-{case}")
+                report = diagnose_with_llm(text, f"fictional-{case}", capture_rejected)
                 result.update(
                     {
                         "passed": True,
@@ -141,6 +151,13 @@ def main() -> None:
                 )
             except (LLMConfigurationError, LLMRequestError, LLMOutputError) as exc:
                 result.update({"passed": False, "error_type": type(exc).__name__, "error_message": str(exc)})
+                if rejected and args.dump_rejected:
+                    # runtime/ 已被 .gitignore 排除：失败载荷只留在本机，供定位原因。
+                    dump_dir = ROOT / "runtime" / "rejected"
+                    dump_dir.mkdir(parents=True, exist_ok=True)
+                    dump = dump_dir / f"{result['input_sha256'][:12]}-{case}.txt"
+                    dump.write_text(rejected[-1], encoding="utf-8")
+                    result["rejected_dump"] = dump.relative_to(ROOT).as_posix()
             result["duration_seconds"] = round(time.monotonic() - started, 3)
             result["events"] = capture.records.copy()
             results.append(result)

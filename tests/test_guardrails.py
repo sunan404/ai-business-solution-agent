@@ -239,3 +239,29 @@ def test_llm_consent_and_session_cap(monkeypatch):
     assert not app.exception and len(called) == 1
     app.button[0].click().run()
     assert len(called) == 1 and any("上限" in error.value for error in app.error)
+
+
+def test_page_discloses_dropped_evidence_and_markdown_keeps_it(monkeypatch):
+    """报告被按条处置时，页面与下载内容都必须披露，不能静默少内容。"""
+    import src.llm
+    from src.report import render_markdown
+
+    repairs = ["team_roles「市场、设计、门店」：无可用证据，整条移除"]
+
+    def fake_llm(text, case_name):
+        report = diagnose(text, case_name)
+        report["analysis_mode"] = "LLM 增强模式"
+        report["validation_repairs"] = repairs
+        report["method_note"] += " 本次校验处置：" + "；".join(repairs) + "。被移除的内容未出现在报告中。"
+        return report
+
+    monkeypatch.setattr(src.llm, "diagnose_with_llm", fake_llm)
+    app = AppTest.from_file(str(ROOT / "app.py")).run()
+    app.radio[1].set_value("LLM 增强模式").run()
+    app.checkbox[0].check().run()
+    app.button[0].click().run()
+
+    assert not app.exception
+    assert any("未通过证据回溯校验" in warning.value for warning in app.warning)
+    markdown = render_markdown(app.session_state["diagnosis_report"])
+    assert "本次校验处置" in markdown

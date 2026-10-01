@@ -42,7 +42,9 @@ DeepSeek 明确为实验通道，长文档校准仍出现证据错误，详见 e
 
 JSON 日志到标准错误输出，含事件名、随机诊断编号、错误类别、耗时、返回 token 和估算费用；不含客户原文、文件名、访问口令、API Key 或底层异常正文。页面给出编号前 12 位，可在日志搜索相同前缀。
 
-事件：`llm_started`、`llm_usage`、`llm_completed`、`llm_failed`、`llm_blocked`。分类：authentication、permission、model_not_found、rate_limit、connection、bad_request、output_validation、provider_or_internal、quota。未知异常仅补充 Python 异常类型名，不记录异常正文。
+事件：`llm_started`、`llm_usage`、`llm_completed`、`llm_repaired`、`llm_failed`、`llm_blocked`。分类：authentication、permission、model_not_found、rate_limit、connection、bad_request、output_validation、provider_or_internal、quota。未知异常仅补充 Python 异常类型名，不记录异常正文。
+
+`llm_repaired` 表示模型输出中有摘录未通过原文回溯校验，应用按条丢弃后仍然出报告；日志只记事件与诊断编号，不记被丢弃的摘录内容。被移除的条目同时显示在页面和下载报告中，因此报告结论可能少于模型原始输出。生产路径从不把模型输出写入日志或磁盘；只有虚构资料的离线校准在显式加上 `--dump-rejected` 时才把失败载荷写到被 Git 忽略的 `runtime/rejected/`。
 
 管理员应限制日志权限与保存期，按合同设置轮转。不要在客户环境开启 SDK HTTP body 调试，不把含客户资料的报错截图贴到公开 Issues。日志是基础诊断能力，尚无自动告警平台。
 

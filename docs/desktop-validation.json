@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-01",
+  "timezone": "Asia/Hong_Kong",
+  "version": "0.3.0",
+  "platform": "Windows x64",
+  "python": "3.12.14",
+  "streamlit": "1.64.0",
+  "pywebview": "6.2.1",
+  "pyinstaller": "6.22.3",
+  "pytest_passed": 89,
+  "src_statement_coverage_percent": 78.78,
+  "ruff_passed": true,
+  "mypy_passed": true,
+  "frozen_checks": [
+    "text_examples", "xlsx", "both_report_pages", "download_buttons", "http", "shutdown"
+  ],
+  "native_gui_checks": [
+    "native_window", "report_generation", "download_control", "upload_control",
+    "file_upload", "uploaded_report", "native_download"
+  ],
+  "lifecycle_checks": ["loopback_binding", "parent_crash_backend_shutdown"],
+  "new_paid_model_calls": 0,
+  "scope": "Local verification; GitHub Actions results are reported separately."
+}

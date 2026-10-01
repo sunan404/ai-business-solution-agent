@@ -13,6 +13,8 @@ def release_files(root: Path) -> list[Path]:
         root / name
         for name in (
             "app.py",
+            "desktop.py",
+            "desktop.spec",
             "README.md",
             "LICENSE",
             "CHANGELOG.md",
@@ -20,6 +22,7 @@ def release_files(root: Path) -> list[Path]:
             "requirements.lock",
             "requirements-dev.lock",
             "requirements-demo.lock",
+            "requirements-desktop-build.lock",
             "uv.lock",
             "pyproject.toml",
             "Dockerfile",
@@ -30,6 +33,7 @@ def release_files(root: Path) -> list[Path]:
             ".env.example",
             ".streamlit/config.toml",
             ".github/workflows/ci.yml",
+            ".github/workflows/windows-client.yml",
         )
     ]
     patterns = {

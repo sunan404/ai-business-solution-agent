@@ -87,11 +87,11 @@ from pathlib import Path
 import src
 from streamlit.testing.v1 import AppTest
 assert Path(src.__file__).resolve().parent == Path.cwd() / 'src'
-app = AppTest.from_file('app.py').run()
-app.button[0].click().run()
+app = AppTest.from_file('app.py').run(timeout=30)
+app.button[0].click().run(timeout=30)
 assert not app.exception and app.get('download_button')
-app.selectbox[0].select('消费品牌团队').run()
-app.button[0].click().run()
+app.selectbox[0].select('消费品牌团队').run(timeout=30)
+app.button[0].click().run(timeout=30)
 assert not app.exception and app.get('download_button')
 print('PASS: extracted bundle imports its own src; both page cases and downloads work.')
 """

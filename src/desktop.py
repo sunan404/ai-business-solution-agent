@@ -18,6 +18,7 @@ from urllib.request import ProxyHandler, build_opener
 
 from dotenv import load_dotenv
 
+from .desktop_runtime import prepare_windows_runtime
 from .version import project_version
 
 APP_NAME = "AI 商业需求诊断助手"
@@ -428,6 +429,8 @@ def main(argv: list[str] | None = None) -> int:
     if sys.stderr is None:
         sys.stderr = open(os.devnull, "w", encoding="utf-8")
     try:
+        if not options.serve:
+            prepare_windows_runtime(resource_root())
         if options.serve:
             if not options.port or not options.parent_pid:
                 parser.error("Internal server requires a port and parent PID")

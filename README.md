@@ -1,10 +1,10 @@
 # AI 商业需求诊断助手
 
-`ai-business-solution-agent` · v0.3.0 · Windows 桌面客户端 / Python / Streamlit · MIT
+`ai-business-solution-agent` · v0.3.1 · Windows 桌面客户端 / Python / Streamlit · MIT
 
 面向售前、商业分析和客户成功人员，把访谈与业务表格整理成“目标—痛点—证据—优先级—建议—追问”。保留无需密钥的本地规则模式，也支持可选 OpenAI / DeepSeek 模式。当前适用于作品集和单机/单实例受控试点，不承诺企业生产交付或真实客户准确率。
 
-**Windows 客户端**：[下载 Releases](https://github.com/sunan404/ai-business-solution-agent/releases) 中的 `BusinessDiagnosis-0.3.0-windows-x64.zip`，完整解压后双击 `BusinessDiagnosis.exe`。已包含 Python，使用独立应用窗口，关闭窗口自动停止本地服务。[客户端使用与构建说明](docs/desktop.md) 包含模型配置、WebView2 运行时和校验方法。
+**Windows 客户端**：[下载 Releases](https://github.com/sunan404/ai-business-solution-agent/releases) 中的 `BusinessDiagnosis-0.3.1-windows-x64.zip`，完整解压后双击 `BusinessDiagnosis.exe`。已包含 Python，使用独立应用窗口，关闭窗口自动停止本地服务。[客户端使用与构建说明](docs/desktop.md) 包含模型配置、WebView2 运行时和校验方法。
 
 [观看 / 下载 2 分钟演示](media/demo-local.mp4) · [试点交付指南](docs/delivery-guide.md) · [部署与运维](docs/deployment.md) · [评估说明](docs/evaluation.md)
 
@@ -157,7 +157,7 @@ Compose 默认只绑定 `127.0.0.1:8501`，配额使用持久化 volume。镜像
 .\.venv\Scripts\python.exe -m scripts.package_release
 ```
 
-打包生成 `dist/ai-business-solution-agent-0.3.0.zip`，按白名单纳入运行代码、示例、文档、测试、截图与视频，不带 `.env`、`.agents`、`node_modules`、虚拟环境、缓存或配额数据库。不直接打包整个工作目录。Windows 可执行客户端由 `desktop.spec` 单独构建，详见[客户端说明](docs/desktop.md)。
+打包生成 `dist/ai-business-solution-agent-0.3.1.zip`，按白名单纳入运行代码、示例、文档、测试、截图与视频，不带 `.env`、`.agents`、`node_modules`、虚拟环境、缓存或配额数据库。不直接打包整个工作目录。Windows 可执行客户端由 `desktop.spec` 单独构建，详见[客户端说明](docs/desktop.md)。
 
 Mypy 当前检查配置、预算、日志、评分和鉴权五个模块，不声称全仓库严格类型覆盖。[真实完整 CI](https://github.com/sunan404/ai-business-solution-agent/actions/runs/36678520170) 已通过测试、静态检查、打包解压验证与 Linux Docker 构建/容器 smoke。当前 main 的后续构建状态可查看仓库 Actions；通过 CI 不等于已部署到客户生产环境。
 

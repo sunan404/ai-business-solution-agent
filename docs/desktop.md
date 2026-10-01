@@ -1,15 +1,17 @@
 # Windows 桌面客户端
 
-版本：0.3.0 · Windows 10/11 x64。
+版本：0.3.1 · Windows 10/11 x64。
 
 ## 下载与启动
 
-1. 打开 [GitHub Releases](https://github.com/sunan404/ai-business-solution-agent/releases)，下载 `BusinessDiagnosis-0.3.0-windows-x64.zip`。
+1. 打开 [GitHub Releases](https://github.com/sunan404/ai-business-solution-agent/releases)，下载 `BusinessDiagnosis-0.3.1-windows-x64.zip`。
 2. 将整个 ZIP 解压到本地目录，保留 `BusinessDiagnosis.exe` 旁的 `_internal` 文件夹。
 3. 双击 `BusinessDiagnosis.exe`，等待本地服务启动，进入独立窗口。
 4. 选择内置案例、粘贴资料或上传 TXT / Markdown / CSV / XLSX，生成并下载报告。
 
 客户端已包含 Python 和应用依赖，不需要安装 Python、Node.js 或启动命令行。使用系统的 Microsoft Edge WebView2 Runtime；如果启动提示缺少运行时，请通过 [微软官方页面](https://developer.microsoft.com/microsoft-edge/webview2/) 安装 Evergreen Runtime 后重试。
+
+客户端首次启动会校验内置 DLL 的 SHA-256，仅对与构建时一致的客户端组件解除下载后继承的网络标记，以避免 .NET 拒绝加载。不会处理你的上传资料、配置或其他目录。若解压目录不可写，请先右键下载的 ZIP → 属性 → 解除锁定，再完整解压到个人有写入权限的目录。
 
 此版本提供便携 ZIP，尚未使用代码签名证书；Windows 可能提示未知发布者。发布页提供 `.sha256` 校验文件，可以用 `Get-FileHash` 核对完整性。
 
@@ -53,7 +55,7 @@ Get-Content .\smoke.json
 .\.venv\Scripts\python.exe -m scripts.package_desktop
 ```
 
-源码和客户端有不同分发包：`ai-business-solution-agent-0.3.0.zip` 是源码服务包，`BusinessDiagnosis-0.3.0-windows-x64.zip` 是可直接启动的 Windows 客户端。
+源码和客户端有不同分发包：`ai-business-solution-agent-0.3.1.zip` 是源码服务包，`BusinessDiagnosis-0.3.1-windows-x64.zip` 是可直接启动的 Windows 客户端。
 
 构建依赖由 `pyproject.toml` 与 `uv.lock` 管理，锁文件导出方式：
 

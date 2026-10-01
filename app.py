@@ -136,9 +136,16 @@ with st.sidebar:
     else:
         st.warning("未检测到本机环境密钥。可继续使用本地规则模式。")
     with st.expander("API Key 配置指南"):
-        st.markdown(
-            "1. 将 `.env.example` 复制为 `.env`。\n2. 选择 `LLM_PROVIDER=openai` 或 `deepseek`，填写对应密钥。\n3. 重启应用，选择 LLM 增强模式并确认外发。"
-        )
+        if os.getenv("DIAGNOSIS_DESKTOP") == "1":
+            st.markdown(
+                "1. 点击窗口菜单“设置 → 编辑模型配置（保存后重启）”。\n"
+                "2. 选择 `LLM_PROVIDER=openai` 或 `deepseek`，填写对应密钥。\n"
+                "3. 保存配置，关闭并重新打开客户端，选择 LLM 增强模式并确认外发。"
+            )
+        else:
+            st.markdown(
+                "1. 将 `.env.example` 复制为 `.env`。\n2. 选择 `LLM_PROVIDER=openai` 或 `deepseek`，填写对应密钥。\n3. 重启应用，选择 LLM 增强模式并确认外发。"
+            )
         st.caption(
             "密钥仅从服务端环境读取，不通过网页输入或显示。配置存在不等于连接已验证；生成时才发起请求。"
         )
@@ -246,6 +253,11 @@ if st.session_state.get("diagnosis_report"):
     st.divider()
     st.subheader(f"客户诊断报告｜{report['case_name']}")
     st.caption(f"生成模式：{report['analysis_mode']}")
+    if report.get("validation_repairs"):
+        st.warning(
+            "本次模型输出有一处或多处未通过证据回溯校验，应用已按条处置，"
+            "其余结论仍然展示：\n\n- " + "\n- ".join(report["validation_repairs"])
+        )
     if report.get("usage"):
         usage = report["usage"]
         cost = (

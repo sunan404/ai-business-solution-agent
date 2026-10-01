@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-business-solution-agent"
-version = "0.2.0"
+version = "0.3.0"
 description = "Evidence-grounded business diagnosis with local rules and optional LLM"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -17,6 +17,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8,<9", "pytest-cov>=6,<8", "ruff>=0.11,<1", "mypy>=1.15,<2", "build>=1.2,<2"]
 demo = ["playwright>=1.50,<2", "imageio-ffmpeg>=0.6,<1"]
+desktop = ["pywebview>=6,<7; sys_platform == 'win32'"]
+desktop-build = ["pyinstaller>=6.16,<7; sys_platform == 'win32'"]
 
 [tool.setuptools.packages.find]
 include = ["src*"]

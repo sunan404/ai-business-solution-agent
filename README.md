@@ -1,8 +1,10 @@
 # AI 商业需求诊断助手
 
-`ai-business-solution-agent` · v0.2.0 · Python / Streamlit · MIT
+`ai-business-solution-agent` · v0.3.0 · Windows 桌面客户端 / Python / Streamlit · MIT
 
 面向售前、商业分析和客户成功人员，把访谈与业务表格整理成“目标—痛点—证据—优先级—建议—追问”。保留无需密钥的本地规则模式，也支持可选 OpenAI / DeepSeek 模式。当前适用于作品集和单机/单实例受控试点，不承诺企业生产交付或真实客户准确率。
+
+**Windows 客户端**：[下载 Releases](https://github.com/sunan404/ai-business-solution-agent/releases) 中的 `BusinessDiagnosis-0.3.0-windows-x64.zip`，完整解压后双击 `BusinessDiagnosis.exe`。已包含 Python，使用独立应用窗口，关闭窗口自动停止本地服务。[客户端使用与构建说明](docs/desktop.md) 包含模型配置、WebView2 运行时和校验方法。
 
 [观看 / 下载 2 分钟演示](media/demo-local.mp4) · [试点交付指南](docs/delivery-guide.md) · [部署与运维](docs/deployment.md) · [评估说明](docs/evaluation.md)
 
@@ -21,7 +23,7 @@
 - 支持粘贴文本和上传 TXT、Markdown、CSV、XLSX。
 - 识别业务目标、角色、现有工具、客户关注点与五类问题信号。
 - 两种模式均按 `影响×2+紧迫度` 计算分数、排序：8–9 为高，5–7 为中，3–4 为低；任一等级待确认则分数为 0、优先级待确认。同分按证据数排序。
-- 每项事实与痛点附原文摘录；缺失信息转为追问。LLM 输出必须通过 JSON、字段、等级和证据校验。
+- 每项事实与痛点附原文摘录；缺失信息转为追问。LLM 输出必须通过 JSON、字段与等级校验；无法回溯到原文的单条摘录按条丢弃并在页面与报告披露，不再因此作废整份报告。
 - 下载 Markdown 报告；当前会话保留报告，更换输入或模式后清除旧报告。
 - 可选访问口令、共享持久化每日预算、会话请求限额和安全日志。
 
@@ -46,9 +48,10 @@ flowchart TD
     C -->|本地| D[意图 / 否定过滤与规则抽取]
     C -->|用户确认外发| E[会话次数与共享预算检查]
     E --> F[有超时 / 重试 / 输出上限的模型请求]
-    F --> G[JSON / 字段 / 原文证据校验]
+    F --> G[JSON / 字段 / 等级校验 + 逐条证据回溯]
+    G --> G2[丢弃无法回溯的单条摘录并记录处置]
+    G2 --> H
     D --> H[统一评分、排序与报告]
-    G --> H
     H --> I[中文页面 / Markdown 下载]
     F --> J[无原文的错误与用量日志]
 ```
@@ -61,6 +64,7 @@ Python、Streamlit、Pandas、OpenPyXL、OpenAI SDK、python-dotenv、SQLite、P
 
 ```text
 app.py                  中文页面、访问门、外发确认与下载
+desktop.py / desktop.spec  Windows 窗口启动与便携客户端构建
 src/                    输入、规则、LLM、评分、预算、日志与启动检查
 data/                   完整虚构案例与 25 条标注评估样例
 docs/                   隐私、使用条款、处理说明、试点、部署与评估
@@ -105,9 +109,9 @@ Copy-Item .env.example .env
 code .env
 ```
 
-选择一种服务商：OpenAI 使用 `LLM_PROVIDER=openai` 和 `OPENAI_API_KEY`；DeepSeek 使用 `LLM_PROVIDER=deepseek`、`DEEPSEEK_API_KEY` 和账户可用的 `DEEPSEEK_MODEL`（模板默认 `deepseek-flash`）。两种密钥均只从环境读取。重启应用，选择 LLM 模式并确认外发资料。OpenAI 使用 Responses 严格 JSON Schema；DeepSeek 使用 Chat JSON 模式，再由应用校验完整字段、等级和原文证据，校验失败不展示报告。不是任意厂商 API 的通用适配器。
+选择一种服务商：OpenAI 使用 `LLM_PROVIDER=openai` 和 `OPENAI_API_KEY`；DeepSeek 使用 `LLM_PROVIDER=deepseek`、`DEEPSEEK_API_KEY` 和账户可用的 `DEEPSEEK_MODEL`（模板默认 `deepseek-flash`）。两种密钥均只从环境读取。重启应用，选择 LLM 模式并确认外发资料。OpenAI 使用 Responses 严格 JSON Schema；DeepSeek 使用 Chat JSON 模式。无论哪个服务商，JSON 结构、字段集合与等级枚举不符时都不展示报告；单条摘录无法回溯到原文时只丢弃该条（或该条所在的事实/痛点），并在页面与报告披露处置，其余结论照常展示。不是任意厂商 API 的通用适配器。
 
-**DeepSeek 为实验通道，不承诺稳定交付。** 累计真实校准 3/9 通过，两个 ≥20,000 字符长案例仅 1/2 通过（另一份证据不可回溯，已拒绝）。失败不退预留额度，亦可能产生服务商费用。完整失败与用量见 [评估说明](docs/evaluation.md)。OpenAI 的严格 Schema 也不保证语义或证据正确，OpenAI 路径本项目尚未进行真实调用校准。
+**DeepSeek 为实验通道，不承诺稳定交付。** 累计真实校准 3/9 通过，两个 ≥20,000 字符长案例仅 1/2 通过（另一份的角色证据不可回溯）。长案例失败会触发上述按条丢弃处置，因此仍有报告产出，但缺失的结论必须视为未验证。失败不退预留额度，亦可能产生服务商费用。完整失败与用量见 [评估说明](docs/evaluation.md)。OpenAI 的严格 Schema 也不保证语义或证据正确，OpenAI 路径本项目尚未进行真实调用校准。
 
 通用配置使用 `LLM_TIMEOUT_SECONDS`、`LLM_MAX_RETRIES`、`LLM_MAX_OUTPUT_TOKENS`，旧 `OPENAI_*` 同名后缀仍兼容，若同时存在以 `LLM_*` 为准，非法新值不会回退旧值。可选 `LLM_MODEL` 非空时覆盖所选服务商的模型名；否则分别使用 `OPENAI_MODEL` / `DEEPSEEK_MODEL`。不自动更改已有本机 `.env`。
 
@@ -119,10 +123,11 @@ code .env
 | Excel | 解压体积 ≤20 MB、成员 ≤1,000、压缩比 ≤200；拒绝宏、外链与 XML 实体定义 |
 | 请求 | 单次 SDK 尝试超时默认 30 秒（可设 1–60）；最多 1 次重试（可设 0–2） |
 | 输出 | 默认最多 6,000 tokens（可设 256–12,000）；不完整输出拒绝 |
+| 证据 | 忽略行内空白差异，但换行结构必须一致（跨行拼接不算原文）；无法回溯的摘录按条丢弃并披露，不静默改写、不补写 |
 | 配额 | 每会话 5 次模型操作；共享每日最多 20 次尝试预留、2,000,000 tokens 预留；两项均为上限，不保证 20 次都能使用 |
 | 费用 | 可配置美元预算和账户模型费率；未配置费率时不显示“免费”或虚构金额 |
 
-SDK 按其可重试错误规则重试；应用不自动修补 JSON 或改用本地结果。重试可能重复计费，总等待也可能达到多次超时。请求前按 UTF-8 字节长度加协议余量估算输入预留量，并计入最坏重试和输出上限；这是保守保护，不是 tokenizer 实测或账单保证。
+SDK 按其可重试错误规则重试；应用不自动修补 JSON、不重写证据、不改用本地结果冒充模型输出。校验失败与按条丢弃都不自动重新请求模型，需要人工重试。重试可能重复计费，总等待也可能达到多次超时。请求前按 UTF-8 字节长度加协议余量估算输入预留量，并计入最坏重试和输出上限；这是保守保护，不是 tokenizer 实测或账单保证。
 
 配额写入共享 SQLite，失败不退预留，Asia/Hong_Kong 日界线。启动生产服务时校验最大输入能否放入整日预算；单次预留超过整日上限与已经耗尽额度使用不同错误提示。重开浏览器只重置会话限额，不重置共享预算。多副本、不同数据库或删除存储会破坏共享上限；生产应另设服务商侧费用限制。
 
@@ -152,7 +157,7 @@ Compose 默认只绑定 `127.0.0.1:8501`，配额使用持久化 volume。镜像
 .\.venv\Scripts\python.exe -m scripts.package_release
 ```
 
-打包生成 `dist/ai-business-solution-agent-0.2.0.zip`，按白名单纳入运行代码、示例、文档、测试、截图与视频，不带 `.env`、`.agents`、`node_modules`、虚拟环境、缓存或配额数据库。不直接打包整个工作目录。
+打包生成 `dist/ai-business-solution-agent-0.3.0.zip`，按白名单纳入运行代码、示例、文档、测试、截图与视频，不带 `.env`、`.agents`、`node_modules`、虚拟环境、缓存或配额数据库。不直接打包整个工作目录。Windows 可执行客户端由 `desktop.spec` 单独构建，详见[客户端说明](docs/desktop.md)。
 
 Mypy 当前检查配置、预算、日志、评分和鉴权五个模块，不声称全仓库严格类型覆盖。[真实完整 CI](https://github.com/sunan404/ai-business-solution-agent/actions/runs/36678520170) 已通过测试、静态检查、打包解压验证与 Linux Docker 构建/容器 smoke。当前 main 的后续构建状态可查看仓库 Actions；通过 CI 不等于已部署到客户生产环境。
 
@@ -177,6 +182,8 @@ LLM 语义质量基线尚未测量。真实 DeepSeek 联调记录（包含失败
 依赖以 `pyproject.toml` 为源，`uv.lock` 锁定解析结果，运行/开发/录屏的 requirements 锁文件含精确版本和 hash。运行镜像不安装 pytest，基础镜像固定 digest。升级依赖须重新导出锁文件并跑 CI。MIT 授权主体为 GitHub 维护者 sunan404；付费合同需要另外明确实际签约主体。
 
 规则可能误判否定作用域、宽泛词、交接分类和复杂句；未命中不代表没有问题。同一证据可支持多个结论，不能当作多个独立事实计数。未知等级保留为待确认。LLM 摘录校验只能证明文字存在，不能证明语义成立。
+
+LLM 证据回溯以「行」为单位，与本地规则一致：行内空白差异被忽略，但跨行拼接不算原文。因此**硬换行（把一段话折成多行）的资料可能被判定为不可回溯**，该条证据会被丢弃并在报告中披露。这类资料建议整理为一段一行，或改用本地规则模式。
 
 正式企业交付前，运营方须补全真实服务身份、联系方式、日志期限与受托服务商，确认合同、安全措施和适用法律要求。政策文档是软件说明及约定草案，不是合规认证或已经签署的企业协议。
 

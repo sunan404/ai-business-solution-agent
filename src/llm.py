@@ -10,8 +10,9 @@ import os
 import re
 import time
 import uuid
+from collections.abc import Callable
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Sequence
 
 from .budget import QuotaError, record_usage, reserve_budget
 from .config import PROMPT_TOKEN_MARGIN, ConfigurationError, LLMSettings, provider_name
@@ -144,7 +145,14 @@ SYSTEM_INSTRUCTIONS = """你是 SaaS 客户需求诊断助手。只基于用户�
 
 
 def _normalize(text: str) -> str:
-    return re.sub(r"\s+", "", text)
+    """忽略行内空白差异，但保留换行结构。
+
+    只去掉行内空白、折叠空行，不再把 `\\n` 一并删除：否则「上一行末尾 + 下一行开头」
+    这种跨行拼接会被当成原文连续片段，与“证据可回溯”的承诺相矛盾。
+    """
+    unified = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = [re.sub(r"[^\S\n]+", "", line) for line in unified.split("\n")]
+    return "\n".join(line for line in lines if line)
 
 
 def is_llm_configured() -> bool:
@@ -156,27 +164,44 @@ def is_llm_configured() -> bool:
         return False
 
 
-def _validate_evidence(evidence: Any, source_text: str, field: str) -> list[str]:
-    if (
-        not isinstance(evidence, list)
-        or not evidence
-        or not all(isinstance(item, str) and item.strip() for item in evidence)
-    ):
-        raise LLMOutputError(f"模型输出的 {field} 缺少有效证据摘录。")
+def _traceable_evidence(evidence: Any, source_text: str) -> tuple[list[str], int]:
+    """返回可回溯的摘录与被丢弃的数量。
+
+    单条改写不再作废整份报告：一条证据无法回溯时只丢弃该条，让其余结论仍可交付，
+    并由调用方在报告中披露处置情况。
+    """
+    if not isinstance(evidence, list) or not all(isinstance(item, str) for item in evidence):
+        raise LLMOutputError("模型输出的 evidence 必须为字符串数组。")
     normalized_source = _normalize(source_text)
-    for quote in evidence:
-        if _normalize(quote) not in normalized_source:
-            raise LLMOutputError(f"模型输出的 {field} 包含无法回溯到原文的证据摘录。")
-    return evidence
+    kept: list[str] = []
+    dropped = 0
+    for item in evidence:
+        if isinstance(item, str) and item.strip() and _normalize(item) in normalized_source:
+            kept.append(item)
+        else:
+            dropped += 1
+    return kept, dropped
 
 
-def validate_llm_payload(payload: Any, source_text: str) -> dict[str, Any]:
-    """对结构化输出进行应用端校验，拒绝非 JSON、缺字段和不可回溯证据。"""
+def _field_diff(actual: set[str], expected: set[str]) -> str:
+    missing = sorted(expected - actual) or ["无"]
+    extra = sorted(actual - expected) or ["无"]
+    return f"缺少 {'、'.join(missing)}；多余 {'、'.join(extra)}"
+
+
+def validate_llm_payload(payload: Any, source_text: str) -> tuple[dict[str, Any], list[str]]:
+    """校验结构，丢弃无法回溯的证据，返回 (已处置载荷, 处置说明)。
+
+    结构与取值契约（字段集合、非空字段、等级枚举）仍然整体拒绝；无法回溯的摘录只做
+    局部丢弃，避免一条改写作废整份诊断。
+    """
     if not isinstance(payload, dict):
         raise LLMOutputError("模型输出不是 JSON 对象。")
     required = set(DIAGNOSIS_SCHEMA["required"])
     if set(payload) != required:
-        raise LLMOutputError("模型 JSON 字段不完整或包含未预期字段。")
+        raise LLMOutputError(f"模型 JSON 顶层字段不符：{_field_diff(set(payload), required)}。")
+
+    repairs: list[str] = []
 
     background = payload["customer_background"]
     if (
@@ -185,51 +210,82 @@ def validate_llm_payload(payload: Any, source_text: str) -> dict[str, Any]:
         or not isinstance(background["summary"], str)
     ):
         raise LLMOutputError("模型输出的客户背景格式无效。")
-    if background["summary"] == "客户背景待确认" and background["evidence"] == []:
-        if not payload.get("questions_to_confirm"):
-            raise LLMOutputError("客户背景缺失时必须提供待确认问题。")
-    else:
-        if not background["summary"].strip():
-            raise LLMOutputError("客户背景不能为空。")
-        _validate_evidence(background["evidence"], source_text, "客户背景")
+    if not background["summary"].strip():
+        raise LLMOutputError("模型输出的客户背景 summary 为空。")
+    kept, dropped = _traceable_evidence(background["evidence"], source_text)
+    if dropped:
+        repairs.append(f"客户背景：丢弃 {dropped} 条无法回溯的摘录")
+    if not kept and background["summary"] != "客户背景待确认":
+        background["summary"] = "客户背景待确认"
+        repairs.append("客户背景：无可用证据，已降级为待确认")
+    if not kept and not payload.get("questions_to_confirm"):
+        raise LLMOutputError("客户背景没有可回溯证据，且未提供待确认问题，无法生成报告。")
+    background["evidence"] = kept
 
     for field in ("business_goals", "team_roles", "existing_tools", "customer_concerns"):
         if not isinstance(payload[field], list):
             raise LLMOutputError(f"模型输出的 {field} 不是列表。")
-        for item in payload[field]:
-            if (
-                not isinstance(item, dict)
-                or set(item) != {"label", "evidence"}
-                or not isinstance(item["label"], str)
-                or not item["label"].strip()
-            ):
-                raise LLMOutputError(f"模型输出的 {field} 条目格式无效。")
-            _validate_evidence(item["evidence"], source_text, field)
+        for item in list(payload[field]):
+            if not isinstance(item, dict):
+                raise LLMOutputError(f"模型输出的 {field} 条目不是对象。")
+            if set(item) != {"label", "evidence"}:
+                raise LLMOutputError(
+                    f"模型输出的 {field} 条目字段不符：{_field_diff(set(item), {'label', 'evidence'})}。"
+                )
+            if not isinstance(item["label"], str) or not item["label"].strip():
+                raise LLMOutputError(f"模型输出的 {field} 条目 label 为空。")
+            kept, dropped = _traceable_evidence(item["evidence"], source_text)
+            if dropped:
+                repairs.append(f"{field}「{item['label']}」：丢弃 {dropped} 条无法回溯的摘录")
+            if not kept:
+                payload[field].remove(item)
+                repairs.append(f"{field}「{item['label']}」：无可用证据，整条移除")
+            else:
+                item["evidence"] = kept
 
     if not isinstance(payload["pain_points"], list):
         raise LLMOutputError("模型输出的 pain_points 不是列表。")
     pain_fields = {"title", "impact", "urgency", "priority", "priority_reason", "evidence", "suggestion"}
-    for item in payload["pain_points"]:
-        if not isinstance(item, dict) or set(item) != pain_fields:
-            raise LLMOutputError("模型输出的痛点字段不完整。")
-        if any(
-            not isinstance(item[field], str) or not item[field].strip()
-            for field in pain_fields - {"evidence"}
-        ):
-            raise LLMOutputError("模型输出的痛点包含空字段。")
+    for item in list(payload["pain_points"]):
+        if not isinstance(item, dict):
+            raise LLMOutputError("模型输出的痛点条目不是对象。")
+        if set(item) != pain_fields:
+            raise LLMOutputError(f"模型输出的痛点字段不符：{_field_diff(set(item), pain_fields)}。")
+        wrong_types = sorted(
+            field for field in pain_fields - {"evidence"} if not isinstance(item[field], str)
+        )
+        if wrong_types:
+            raise LLMOutputError(f"模型输出的痛点字段必须为字符串：{'、'.join(wrong_types)}。")
+        empty = sorted(field for field in pain_fields - {"evidence"} if not item[field].strip())
+        if empty:
+            raise LLMOutputError(f"模型输出的痛点包含空字段：{'、'.join(empty)}。")
         if item["impact"] not in LEVELS or item["urgency"] not in LEVELS or item["priority"] not in LEVELS:
-            raise LLMOutputError("模型输出的痛点等级必须为高、中、低或待确认。")
-        _validate_evidence(item["evidence"], source_text, "痛点")
+            bad = sorted(
+                {
+                    f"{name}={item[name]!r}"
+                    for name in ("impact", "urgency", "priority")
+                    if item[name] not in LEVELS
+                }
+            )
+            raise LLMOutputError(f"模型输出的痛点等级取值非法：{'、'.join(bad)}；只允许高、中、低、待确认。")
+        kept, dropped = _traceable_evidence(item["evidence"], source_text)
+        if dropped:
+            repairs.append(f"痛点「{item['title']}」：丢弃 {dropped} 条无法回溯的摘录")
+        if not kept:
+            payload["pain_points"].remove(item)
+            repairs.append(f"痛点「{item['title']}」：无可用证据，整条移除")
+        else:
+            item["evidence"] = kept
 
     if not isinstance(payload["questions_to_confirm"], list) or not all(
         isinstance(question, str) and question.strip() for question in payload["questions_to_confirm"]
     ):
         raise LLMOutputError("模型输出的待确认问题格式无效。")
-    return payload
+    return payload, repairs
 
 
-def parse_and_validate_llm_output(raw_output: str, source_text: str) -> dict[str, Any]:
-    """拒绝非 JSON 文本，并校验字段与原文证据。"""
+def parse_and_validate_llm_output(raw_output: str, source_text: str) -> tuple[dict[str, Any], list[str]]:
+    """拒绝非 JSON 文本，并校验字段与原文证据；返回载荷与校验处置说明。"""
     try:
         payload = json.loads(raw_output)
     except (TypeError, json.JSONDecodeError) as exc:
@@ -249,7 +305,9 @@ def _fact_records(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
-def llm_payload_to_report(payload: dict[str, Any], case_name: str) -> dict[str, Any]:
+def llm_payload_to_report(
+    payload: dict[str, Any], case_name: str, repairs: Sequence[str] = ()
+) -> dict[str, Any]:
     """把校验后的 LLM JSON 转成与本地模式共用的页面/下载报告结构。"""
     pain_points = []
     for item in payload["pain_points"]:
@@ -267,6 +325,13 @@ def llm_payload_to_report(payload: dict[str, Any], case_name: str) -> dict[str, 
             }
         )
     pain_points.sort(key=lambda item: (item["priority_score"], len(item["evidence"])), reverse=True)
+    method_note = (
+        "本报告由 LLM 增强模式生成。应用已校验 JSON 结构，并逐条核对证据摘录与输入原文的对应关系；"
+        "仍应由业务人员人工核验。"
+    )
+    repairs = list(repairs)
+    if repairs:
+        method_note += " 本次校验处置：" + "；".join(repairs) + "。被移除的内容未出现在报告中。"
     return {
         "case_name": case_name,
         "background": payload["customer_background"]["summary"],
@@ -279,13 +344,22 @@ def llm_payload_to_report(payload: dict[str, Any], case_name: str) -> dict[str, 
         },
         "pain_points": pain_points,
         "questions": payload["questions_to_confirm"],
-        "method_note": "本报告由 LLM 增强模式生成。应用已校验 JSON 结构和每条证据摘录与输入原文的对应关系；仍应由业务人员人工核验。",
+        "validation_repairs": repairs,
+        "method_note": method_note,
         "analysis_mode": "LLM 增强模式",
     }
 
 
-def diagnose_with_llm(text: str, case_name: str = "自定义资料") -> dict[str, Any]:
-    """调用 Responses API 并将严格校验后的 JSON 转为诊断报告。"""
+def diagnose_with_llm(
+    text: str,
+    case_name: str = "自定义资料",
+    rejected_hook: Callable[[str], None] | None = None,
+) -> dict[str, Any]:
+    """调用所选服务商并把校验后的 JSON 转为诊断报告。
+
+    ``rejected_hook`` 仅供虚构资料的离线校准使用：校验失败时接收原始模型输出，便于定位
+    失败原因。生产调用不传该参数，因此不会把模型输出或客户原文写入日志或磁盘。
+    """
     if not text.strip():
         raise LLMConfigurationError("请先提供需要分析的资料。")
     if len(text) > 60000:
@@ -443,7 +517,15 @@ def diagnose_with_llm(text: str, case_name: str = "自定义资料") -> dict[str
         raw_output = response.output_text
         if not raw_output:
             raise LLMOutputError("模型拒绝分析或返回了空内容，未生成报告。")
-        report = llm_payload_to_report(parse_and_validate_llm_output(raw_output, text), case_name)
+        try:
+            payload, repairs = parse_and_validate_llm_output(raw_output, text)
+        except LLMOutputError:
+            if rejected_hook is not None:
+                rejected_hook(raw_output)
+            raise
+        report = llm_payload_to_report(payload, case_name, repairs)
+        if repairs:
+            event("llm_repaired", request_id=request_id, category="output_validation")
         report["usage"] = {
             "input_tokens": input_tokens,
             "output_tokens": output_tokens,
